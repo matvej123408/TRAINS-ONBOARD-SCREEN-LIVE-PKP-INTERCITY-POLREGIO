@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#e0001b" />
+    <title>POLREGIO Live Onboard Screen</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="jszip.min.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="control-panel" aria-label="Train screen controls">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+          </div>
+          <div>
+            <p class="eyebrow">SBB style onboard display</p>
+            <h1>POLREGIO Live</h1>
+          </div>
+        </div>
+
+        <section class="control-section">
+          <h2>GTFS Schedule</h2>
+          <p id="gtfsStatus" class="status-text">Loading gtfs.zip from this folder...</p>
+          <button id="refreshBtn" type="button">
+            <span aria-hidden="true">↻</span>
+            Reload gtfs.zip
+          </button>
+        </section>
+
+        <section class="control-section">
+          <h2>Driving Now</h2>
+          <label class="field-label" for="destinationSearch">Search by destination</label>
+          <div class="search-row">
+            <input id="destinationSearch" class="text-input" type="search" placeholder="Destination station" autocomplete="off" />
+            <button id="destinationSearchBtn" type="button">
+              <span aria-hidden="true">⌕</span>
+              Search
+            </button>
+          </div>
+          <label class="field-label" for="tripSelect">All selectable trains</label>
+          <select id="tripSelect"></select>
+          <p id="tripHint" class="hint-text">Every train shows in Driving Now.</p>
+        </section>
+
+        <section class="control-section">
+          <h2>Announcements</h2>
+          <div class="field-row">
+            <label class="field-label" for="languageSelect">Voice</label>
+            <select id="languageSelect">
+              <option value="en">English</option>
+              <option value="pl">Polski</option>
+              <option value="pl-en">Polski + English</option>
+              <option value="en-pl">English + Polski</option>
+              <option value="all">Every language</option>
+              <option value="de">Deutsch</option>
+              <option value="cs">Cesky</option>
+              <option value="sk">Slovensky</option>
+              <option value="uk">Ukrainska</option>
+              <option value="fr">Francais</option>
+              <option value="es">Espanol</option>
+              <option value="it">Italiano</option>
+              <option value="nl">Nederlands</option>
+              <option value="pt">Portugues</option>
+              <option value="sv">Svenska</option>
+            </select>
+          </div>
+          <label class="toggle-row">
+            <input id="autoAnnounce" type="checkbox" checked />
+            <span>Auto announcements</span>
+          </label>
+          <div class="announcement-actions" aria-label="Announcement buttons">
+            <button id="enableSoundBtn" type="button">
+              <span aria-hidden="true">♪</span>
+              Enable
+            </button>
+            <button id="welcomeBtn" type="button">
+              <span aria-hidden="true">▶</span>
+              Welcome
+            </button>
+            <button id="arrivingBtn" type="button">
+              <span aria-hidden="true">▶</span>
+              Arriving
+            </button>
+            <button id="arrivedBtn" type="button">
+              <span aria-hidden="true">▶</span>
+              Arrived
+            </button>
+          </div>
+          <p id="audioStatus" class="status-text">PKP Intercity-style gong asset ready.</p>
+        </section>
+
+        <section class="control-section compact">
+          <h2>PWA</h2>
+          <button id="installBtn" type="button" disabled>
+            <span aria-hidden="true">⬇</span>
+            Install App
+          </button>
+          <p id="pwaStatus" class="hint-text">Works on GitHub Pages, localhost, and HTTPS static hosting.</p>
+        </section>
+      </aside>
+
+      <main class="screen-stage" aria-label="Live train screen preview">
+        <section class="train-display" aria-live="polite">
+          <div class="display-topbar">
+            <div class="operator-strip">
+              <span class="sbb-pill">SBB</span>
+              <span class="polregio-wordmark">POLREGIO</span>
+            </div>
+            <div class="service-meta">
+              <span id="serviceCode">R 00000</span>
+              <span id="clock">--:--</span>
+            </div>
+          </div>
+
+          <div class="route-head">
+            <div>
+              <p class="label">Destination</p>
+              <h2 id="destinationName">Opole Główne</h2>
+            </div>
+            <div class="live-chip" id="liveChip">
+              <span></span>
+              Live GTFS
+            </div>
+          </div>
+
+          <div class="primary-readout">
+            <div class="next-block">
+              <p id="phaseLabel" class="label">Next station</p>
+              <h3 id="nextStation">Oława</h3>
+              <p id="arrivalCountdown">Arrives in -- min</p>
+            </div>
+            <div class="time-block">
+              <p class="label">Scheduled</p>
+              <strong id="scheduledTime">--:--</strong>
+              <span id="platformText">Platform --</span>
+            </div>
+          </div>
+
+          <div class="motion-band" aria-hidden="true">
+            <div class="track-lines">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="train-silhouette"></div>
+          </div>
+
+          <div class="route-map" aria-label="Route progress">
+            <div class="progress-line">
+              <span id="progressFill"></span>
+            </div>
+            <ol id="stopList"></ol>
+          </div>
+
+          <div class="lower-grid">
+            <div class="info-tile">
+              <p class="label">Current section</p>
+              <strong id="sectionText">Wrocław Brochów → Oława</strong>
+            </div>
+            <div class="info-tile">
+              <p class="label">Status</p>
+              <strong id="statusText">En route</strong>
+            </div>
+            <div class="info-tile">
+              <p class="label">Journey</p>
+              <strong id="journeyProgress">--%</strong>
+            </div>
+          </div>
+
+          <div class="ticker">
+            <span id="tickerText">Welcome onboard this POLREGIO service.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
